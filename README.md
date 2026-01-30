@@ -4,7 +4,7 @@
 ハーモニーホールふくいなどの実際の舞台図を背景に、椅子や譜面台を配置できます。
 
 ## 🚀 公開URL
-(ここにGitHub Pagesの設定後に表示されるURLを貼ってください)
+[https://github.com/matsu-neco/pult-chart-tool/blob/main/index.html]
 
 ## ✨ 主な機能
 - **直感的な操作**: ドラッグ＆ドロップで楽器や椅子を配置。
