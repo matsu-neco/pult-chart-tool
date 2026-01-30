@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>プルト表作成ツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>プルト表作成ツール</h1>
+    
+    <div class="controls">
+        <div id="button-container"></div>
+        <div class="settings">
+            <select id="hallSelect" onchange="changeHallBackground()">
+                <option value="none">白紙（グリッド）</option>
+                <option value="hhf">ハーモニーホールふくい（大ホール）</option>
+            </select>
+            <select id="sizeSelect">
+                <option value="30">小</option>
+                <option value="40" selected>中</option>
+                <option value="55">大</option>
+            </select>
+            <label><input type="checkbox" id="snapToggle" checked> スナップ</label> |
+            <input type="color" id="colorPicker" value="#ffadad">
+            <button onclick="changeColor()">色を適用</button>
+    
+            <button class="delete-btn" onclick="deleteSelected()">選択中を削除</button>
+    
+            <button class="delete-btn" onclick="clearAll()" style="background-color: #ff5555; color: white;">全消去</button>
+            <button onclick="saveLayout()" style="background-color: #d4edda; border-color: #c3e6cb;">配置を保存</button>
+            <button onclick="exportImage()" style="background-color: #e2e3e5; font-weight: bold;">PNG画像として保存</button>
+        </div>
+        <div id="counter-display">舞台には何もありません</div>
+    </div>
+
+    <div id="stage"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
