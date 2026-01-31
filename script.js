@@ -6,7 +6,7 @@ const counterDisplay = document.getElementById('counter-display');
 let selectedElements = []; 
 let clipboard = [];
 
-const SNAP_SIZE = 10;
+const SNAP_SIZE = 5;
 
 // 楽器のマスターデータ
 const INSTRUMENTS = {
