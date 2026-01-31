@@ -1,7 +1,6 @@
 # プルト表作成ツール (Pult Chart Tool)
 
 オーケストラの舞台配置（プルト表）を直感的に作成・管理できるWebツールです。
-//ハーモニーホールふくいなどの実際の舞台図を背景に、椅子や譜面台を配置できます。
 
 ## 公開URL
 https://matsu-neco.github.io/pult-chart-tool/
