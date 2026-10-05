@@ -278,10 +278,15 @@ async function exportImage() {
     // アイテムを描画
     stage.querySelectorAll('.item').forEach(item => {
         const style = getComputedStyle(item);
-        const x = item.offsetLeft;
-        const y = item.offsetTop;
-        const w = item.offsetWidth;
-        const h = item.offsetHeight;
+
+        // 画面上の実際の位置から、舞台内での座標を取得
+        const itemRect = item.getBoundingClientRect();
+        const stageRect = stage.getBoundingClientRect();
+
+        const x = itemRect.left - stageRect.left - stage.clientLeft;
+        const y = itemRect.top - stageRect.top - stage.clientTop;
+        const w = itemRect.width;
+        const h = itemRect.height;
         const circular = parseFloat(style.borderTopLeftRadius) >= w / 2;
         const borderWidth = parseFloat(style.borderTopWidth) || 0;
 
