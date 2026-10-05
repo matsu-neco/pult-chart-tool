@@ -97,29 +97,58 @@ function setupItemEvents(div) {
         }
     };
 
-    // ドラッグ移動
-    div.onmousedown = function(event) {
-        if (event.button !== 0) return;
+    // ドラッグ移動（PC・スマホ共通）
+    div.onpointerdown = function(event) {
+        // マウスの場合は左クリックのみ
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+    
+        event.preventDefault();
+    
         const rect = div.getBoundingClientRect();
         const stageRect = stage.getBoundingClientRect();
-        let shiftX = event.clientX - rect.left;
-        let shiftY = event.clientY - rect.top;
-
+    
+        const shiftX = event.clientX - rect.left;
+        const shiftY = event.clientY - rect.top;
+    
+        div.setPointerCapture(event.pointerId);
+    
         function moveAt(clientX, clientY) {
-            let newX = clientX - stageRect.left - shiftX;
-            let newY = clientY - stageRect.top - shiftY;
+            let newX = clientX - stageRect.left - stage.clientLeft - shiftX;
+            let newY = clientY - stageRect.top - stage.clientTop - shiftY;
+    
             if (snapToggle.checked) {
                 newX = Math.round(newX / SNAP_SIZE) * SNAP_SIZE;
                 newY = Math.round(newY / SNAP_SIZE) * SNAP_SIZE;
             }
-            div.style.left = newX + 'px'; 
+    
+            div.style.left = newX + 'px';
             div.style.top = newY + 'px';
         }
-
-        const onMouseMove = (e) => moveAt(e.clientX, e.clientY);
-        document.addEventListener('mousemove', onMouseMove);
-        document.onmouseup = () => document.removeEventListener('mousemove', onMouseMove);
+    
+        function onPointerMove(e) {
+            if (e.pointerId !== event.pointerId) return;
+    
+            e.preventDefault();
+            moveAt(e.clientX, e.clientY);
+        }
+    
+        function onPointerUp(e) {
+            if (e.pointerId !== event.pointerId) return;
+    
+            div.removeEventListener('pointermove', onPointerMove);
+            div.removeEventListener('pointerup', onPointerUp);
+            div.removeEventListener('pointercancel', onPointerUp);
+    
+            if (div.hasPointerCapture(e.pointerId)) {
+                div.releasePointerCapture(e.pointerId);
+            }
+        }
+    
+        div.addEventListener('pointermove', onPointerMove);
+        div.addEventListener('pointerup', onPointerUp);
+        div.addEventListener('pointercancel', onPointerUp);
     };
+    
     div.ondragstart = () => false;
 }
 
