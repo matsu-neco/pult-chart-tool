@@ -198,31 +198,176 @@ function loadLayout() {
     updateCount();
 }
 
+
 // --- PNG書き出し ---
-function exportImage() {
+async function exportImage() {
     clearSelection();
-    const stageClone = stage.cloneNode(true);
-    stageClone.style.border = "none";
-    const svgData = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${stage.offsetWidth}" height="${stage.offsetHeight}">
-            <foreignObject width="100%" height="100%">
-                <div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(stageClone)}</div>
-            </foreignObject>
-        </svg>`;
+
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    const scale = 2; // 高解像度で保存
+
     const canvas = document.createElement('canvas');
-    canvas.width = stage.offsetWidth; canvas.height = stage.offsetHeight;
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+
     const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-        ctx.fillStyle = "white"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+    if (!ctx) {
+        alert('画像を作成できませんでした。');
+        return;
+    }
+
+    ctx.scale(scale, scale);
+
+    // 背景を描画
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    const hall = document.getElementById('hallSelect').value;
+
+    if (hall === 'hhf') {
+        try {
+            const bg = new Image();
+            bg.src = 'hhf_pult.jpg';
+            await bg.decode();
+
+            // CSSの background-size: contain と同じ配置
+            const ratio = Math.min(
+                width / bg.naturalWidth,
+                height / bg.naturalHeight
+            );
+            const w = bg.naturalWidth * ratio;
+            const h = bg.naturalHeight * ratio;
+
+            ctx.drawImage(
+                bg,
+                (width - w) / 2,
+                (height - h) / 2,
+                w,
+                h
+            );
+        } catch (error) {
+            console.error(error);
+            alert('ホールの背景画像を読み込めませんでした。');
+            return;
+        }
+    } else {
+        // 白紙のグリッド
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x <= width; x += 20) {
+            ctx.beginPath();
+            ctx.moveTo(x + 0.5, 0);
+            ctx.lineTo(x + 0.5, height);
+            ctx.stroke();
+        }
+
+        for (let y = 0; y <= height; y += 20) {
+            ctx.beginPath();
+            ctx.moveTo(0, y + 0.5);
+            ctx.lineTo(width, y + 0.5);
+            ctx.stroke();
+        }
+    }
+
+    // センターライン
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+    ctx.fillRect(width / 2, 0, 1, height);
+
+    // アイテムを描画
+    stage.querySelectorAll('.item').forEach(item => {
+        const style = getComputedStyle(item);
+        const x = item.offsetLeft;
+        const y = item.offsetTop;
+        const w = item.offsetWidth;
+        const h = item.offsetHeight;
+        const circular = parseFloat(style.borderTopLeftRadius) >= w / 2;
+        const borderWidth = parseFloat(style.borderTopWidth) || 0;
+
+        ctx.save();
+        ctx.beginPath();
+
+        if (circular) {
+            ctx.ellipse(
+                x + w / 2, y + h / 2,
+                w / 2, h / 2, 0, 0, Math.PI * 2
+            );
+        } else {
+            ctx.rect(x, y, w, h);
+        }
+
+        ctx.fillStyle = style.backgroundColor;
+        ctx.fill();
+
+        if (borderWidth > 0 && style.borderTopStyle !== 'none') {
+            ctx.strokeStyle = style.borderTopColor;
+            ctx.lineWidth = borderWidth;
+            ctx.stroke();
+        }
+
+        // アイコン
+        const icon = item.querySelector('.icon');
+        ctx.fillStyle = style.color;
+        ctx.font = `bold ${style.fontSize} sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icon.textContent, x + w / 2, y + h / 2);
+
+        // 名前ラベル
+        const label = item.querySelector('.label');
+        if (label && getComputedStyle(label).display !== 'none') {
+            const labelStyle = getComputedStyle(label);
+            const text = label.textContent.trim();
+
+            if (text) {
+                const fontSize = parseFloat(labelStyle.fontSize);
+                ctx.font = `${fontSize}px sans-serif`;
+
+                const textWidth = ctx.measureText(text).width;
+                const padding = 4;
+                const labelWidth = textWidth + padding * 2;
+                const labelHeight = fontSize + 4;
+                const labelX = x + w / 2 - labelWidth / 2;
+                const labelY = y + h * 1.05;
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(
+                    labelX, labelY, labelWidth, labelHeight
+                );
+
+                ctx.fillStyle = labelStyle.color;
+                ctx.textBaseline = 'middle';
+                ctx.fillText(
+                    text,
+                    x + w / 2,
+                    labelY + labelHeight / 2
+                );
+            }
+        }
+
+        ctx.restore();
+    });
+
+    // PNGファイルとして保存
+    canvas.toBlob(blob => {
+        if (!blob) {
+            alert('PNG画像の生成に失敗しました。');
+            return;
+        }
+
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
+        link.href = url;
         link.download = 'orchestra_layout.png';
-        link.href = canvas.toDataURL("image/png");
+        document.body.appendChild(link);
         link.click();
-    };
-    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
 }
+
 
 // --- ヘルパー ---
 
