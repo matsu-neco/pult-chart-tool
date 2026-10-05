@@ -228,7 +228,10 @@ async function exportImage() {
     if (hall === 'hhf') {
         try {
             const bg = new Image();
-            bg.src = 'hhf_pult.jpg';
+
+            // 現在のページを基準に背景画像のURLを生成
+            bg.src = new URL('hhf_pult.jpg', window.location.href).href;
+            
             await bg.decode();
 
             // CSSの background-size: contain と同じ配置
